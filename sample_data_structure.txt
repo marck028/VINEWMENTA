@@ -1,0 +1,90 @@
+ESTRUCTURA DE DATOS EXCEL PARA RESTAURANTE MENTA
+==============================================
+
+El archivo Excel debe contener exactamente estas columnas (respetar nombres exactos):
+
+COD PRD | DESCRIPCION | SUCURSAL | CAT | FECHA | YEAR | MONTH | L a D | Nº TRANS. | CLIENTE | CANTIDAD | PRECIO | VALOR | BS
+
+EJEMPLO DE DATOS:
+================
+
+COD PRD    | DESCRIPCION        | SUCURSAL | CAT  | FECHA      | YEAR | MONTH | L a D     | Nº TRANS. | CLIENTE  | CANTIDAD | PRECIO | VALOR | BS
+-----------|-------------------|----------|------|------------|------|-------|-----------|-----------|----------|----------|--------|-------|----
+PRD001     | BURGUER CORSO     | 16J      | CAT1 | 2024-01-15 | 2024 | 1     | Lunes     | T0001     | Cliente1 | 2        | 35     | 70    | 70
+PRD002     | BUDDHA BOWL       | FA       | CAT2 | 2024-01-15 | 2024 | 1     | Lunes     | T0002     | Cliente2 | 1        | 45     | 45    | 45
+PRD003     | ALMUERZO COMPLETO | 16J      | CAT3 | 2024-01-16 | 2024 | 1     | Martes    | T0003     | Cliente3 | 1        | 28     | 28    | 28
+
+DESCRIPCIÓN DE COLUMNAS:
+======================
+
+- COD PRD: Código único del producto
+- DESCRIPCION: Nombre del producto (debe coincidir con categorías predefinidas)
+- SUCURSAL: 16J o FA
+- CAT: Categoría interna (cualquier valor)
+- FECHA: Fecha en formato YYYY-MM-DD
+- YEAR: Año (2024 o 2025)
+- MONTH: Mes (1-12)
+- L a D: Día de la semana (Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo)
+- Nº TRANS.: Número único de transacción
+- CLIENTE: Nombre/ID del cliente
+- CANTIDAD: Cantidad vendida (número entero)
+- PRECIO: Precio unitario (número decimal)
+- VALOR: Valor total de la línea (CANTIDAD * PRECIO)
+- BS: Valor en bolivianos (igual a VALOR)
+
+PRODUCTOS RECONOCIDOS POR CATEGORÍA:
+=================================
+
+🍔 Burgers:
+- BURGUER CORSO, CAÑAHUA BURGER, CHICKPEA BURGER, LENTEJA BURGER
+- MORENA BURGER, QUINOA BURGER, TAURUS BURGUER, MINI BURGER
+
+🥗 Ensaladas & Bowls:
+- BUDDHA BOWL, BUDDHA BOWL PEQUEÑO, BUFFET DE ENSALADAS
+- FALAFEL BOWL, FALAFEL BOWL PEQUEÑO, JALISCO BOWL, JALISCO BOWL PEQUEÑO
+- MEDITERRANEA BOWL, MEDITERRANEA BOWL PEQUEÑO
+
+🍽️ Almuerzos Diarios:
+- ALMUERZO COMPLETO, ALMUERZO + BUFFET DE ENSALADAS
+- SEGUNDO, SEGUNDO + BUFFET DE ENSALADAS, SOPA, ENTRADA
+
+⭐ Especiales:
+- SAB. ALMUERZO ESPECIAL COMPLETO, SAB. ESPECIAL SOPA, SEGUNDO SABADO ESPECIAL
+- SILPANCHO VEGGIE, PIQUE MACHO, FRICASE AÑO NUEVO, PICANA NAVIDEÑA, VEGANCUCHO
+
+🥤 Bebidas Frías:
+- AGUA CON GAS, AGUA CON LIMON, AGUA SIN GAS, CITRUS FRESA
+- FULL CITRUS, FULL GREEN 780, JUGO DE TEMPORADA, COCO, SKINNY
+
+☕ Otras Bebidas:
+- CERVEZA, CERVEZA CORONA PERSONAL, CERVEZA S/A PROST LATA
+- CHUFLAY O MOJITO VASO, INFUSION DE HIERBAS, TE, MENTA
+- VINO BLANCO TERRUÑO BOTELLA
+
+🍨 Postres & Helados:
+- BROWNIES, HELADO ARTESANAL, HELADO ARTESANAL CHOCOLATE
+- PASTEL DE ZANAHORIA, TIRAMISU, POSTRE ESPECIAL
+
+🎯 Combos & Promociones:
+- COMBO 2x1 TRANCAPECHO HORA VEGGIE FELIZ, COMBO BURGER 2X1 (SIN PAPAS)
+- COMBO HAMBURGUESA 3X2, COMBO TRANCAPECHO, PROMO 21 SEPTIEMBRE
+- VEGGIE WING 2X30
+
+📋 Planes & Mensualidades:
+- ALMUERZO MENSUAL, ALMUERZO SEMANAL, FIT MENSUAL
+- SEGUNDO MENSUAL, SEGUNDO SEMANAL, PLAN MENSUAL 400
+- PROMO ALMUERZO SEMANAL
+
+🔧 Otros:
+- DESECHABLES 1bs, DESECHABLES 3bs, DESECHABLES 5bs
+- CONSUMO CORTESIA, PAPAS FRITAS, PAPITAS C/SALSA BLANCA
+- PORCION EXTRA-FALAFEL, PORCION HUEVO, PORCION CARNE HAMBURGUESA
+
+IMPORTANTE:
+===========
+- Los nombres de productos deben coincidir exactamente con los listados arriba
+- Si un producto no está en la lista, se clasificará automáticamente como "🔧 Otros"
+- Las fechas deben estar en formato correcto (YYYY-MM-DD)
+- Los días de la semana deben escribirse completos en español
+- Las sucursales solo pueden ser "16J" o "FA"
+- Los valores numéricos deben ser números válidos (sin texto adicional)

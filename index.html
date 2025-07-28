@@ -1,11 +1,231 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Visualizador de Ventas - Restaurante Menta</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-leaf"></i> Restaurante Menta - Dashboard de Ventas</h1>
+                <div class="upload-section">
+                    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
+                    <button class="btn-upload" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-upload"></i> Cargar Datos Excel
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Filters Panel -->
+        <div class="filters-panel">
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label>Sucursal:</label>
+                    <select id="sucursalFilter" multiple>
+                        <option value="16J">16J</option>
+                        <option value="FA">FA</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Año:</label>
+                    <select id="yearFilter" multiple>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Mes:</label>
+                    <select id="monthFilter" multiple>
+                        <option value="1">Enero</option>
+                        <option value="2">Febrero</option>
+                        <option value="3">Marzo</option>
+                        <option value="4">Abril</option>
+                        <option value="5">Mayo</option>
+                        <option value="6">Junio</option>
+                        <option value="7">Julio</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Categoría:</label>
+                    <select id="categoryFilter" multiple>
+                        <option value="🍔 Burgers">🍔 Burgers</option>
+                        <option value="🥗 Ensaladas & Bowls">🥗 Ensaladas & Bowls</option>
+                        <option value="🍽️ Almuerzos Diarios">🍽️ Almuerzos Diarios</option>
+                        <option value="⭐ Especiales">⭐ Especiales</option>
+                        <option value="🥤 Bebidas Frías">🥤 Bebidas Frías</option>
+                        <option value="☕ Otras Bebidas">☕ Otras Bebidas</option>
+                        <option value="🍨 Postres & Helados">🍨 Postres & Helados</option>
+                        <option value="🎯 Combos & Promociones">🎯 Combos & Promociones</option>
+                        <option value="📋 Planes & Mensualidades">📋 Planes & Mensualidades</option>
+                        <option value="🔧 Otros">🔧 Otros</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Producto:</label>
+                    <select id="productFilter" multiple>
+                        <!-- Se llenará dinámicamente -->
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Día de la Semana:</label>
+                    <select id="dayFilter" multiple>
+                        <option value="Lunes">Lunes</option>
+                        <option value="Martes">Martes</option>
+                        <option value="Miércoles">Miércoles</option>
+                        <option value="Jueves">Jueves</option>
+                        <option value="Viernes">Viernes</option>
+                        <option value="Sábado">Sábado</option>
+                        <option value="Domingo">Domingo</option>
+                    </select>
+                </div>
+                
+                <div class="filter-actions">
+                    <button class="btn-apply" onclick="applyFilters()">
+                        <i class="fas fa-filter"></i> Aplicar Filtros
+                    </button>
+                    <button class="btn-reset" onclick="resetFilters()">
+                        <i class="fas fa-undo"></i> Resetear
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPIs Section -->
+        <div class="kpis-section">
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-dollar-sign"></i></div>
+                <div class="kpi-content">
+                    <h3>Total de Ventas</h3>
+                    <span class="kpi-value" id="totalSales">Bs. 0</span>
+                </div>
+            </div>
+            
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-shopping-cart"></i></div>
+                <div class="kpi-content">
+                    <h3>Cantidad Total</h3>
+                    <span class="kpi-value" id="totalQuantity">0</span>
+                </div>
+            </div>
+            
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-calendar-day"></i></div>
+                <div class="kpi-content">
+                    <h3>Días con Ventas</h3>
+                    <span class="kpi-value" id="salesDays">0</span>
+                </div>
+            </div>
+            
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="kpi-content">
+                    <h3>Promedio Diario</h3>
+                    <span class="kpi-value" id="dailyAverage">Bs. 0</span>
+                </div>
+            </div>
+            
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-receipt"></i></div>
+                <div class="kpi-content">
+                    <h3>Ticket Promedio</h3>
+                    <span class="kpi-value" id="averageTicket">Bs. 0</span>
+                </div>
+            </div>
+            
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-users"></i></div>
+                <div class="kpi-content">
+                    <h3>Clientes Únicos</h3>
+                    <span class="kpi-value" id="uniqueCustomers">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-row">
+                <div class="chart-container">
+                    <h3>Distribución de Ventas por Categoría</h3>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Top 10 Productos por Ventas</h3>
+                    <canvas id="topProductsChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <h3>Evolución de Ventas Mensuales</h3>
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Ventas por Día de la Semana</h3>
+                    <canvas id="weekdayChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <h3>Comparativa por Sucursal</h3>
+                    <canvas id="branchChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Tendencia Acumulada</h3>
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-row full-width">
+                <div class="chart-container">
+                    <h3>Heatmap de Ventas por Mes y Día de la Semana</h3>
+                    <div id="heatmapChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Section -->
+        <div class="export-section">
+            <button class="btn-export" onclick="exportData('pdf')">
+                <i class="fas fa-file-pdf"></i> Exportar PDF
+            </button>
+            <button class="btn-export" onclick="exportData('excel')">
+                <i class="fas fa-file-excel"></i> Exportar Excel
+            </button>
+            <button class="btn-export" onclick="exportData('csv')">
+                <i class="fas fa-file-csv"></i> Exportar CSV
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Procesando datos...</p>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
