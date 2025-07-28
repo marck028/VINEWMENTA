@@ -1,11 +1,1476 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Dashboard de Ventas - Restaurante Menta</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="sample_data.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f3f3f3 0%, #e8f5e8 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6BBF59 0%, #5AAF4A 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(107, 191, 89, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .controls-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border: 2px dashed #6BBF59;
+            border-radius: 10px;
+            background: #f8fdf8;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #5AAF4A;
+            background: #f0faf0;
+        }
+
+        .file-upload i {
+            font-size: 3rem;
+            color: #6BBF59;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            background: #6BBF59;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .file-label:hover {
+            background: #5AAF4A;
+            transform: translateY(-2px);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .filter-control {
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .filter-control:focus {
+            outline: none;
+            border-color: #6BBF59;
+            box-shadow: 0 0 0 3px rgba(107, 191, 89, 0.1);
+        }
+
+        .multi-select {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .kpis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .kpi-icon {
+            font-size: 2.5rem;
+            color: #6BBF59;
+            margin-bottom: 1rem;
+        }
+
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .chart-canvas {
+            position: relative;
+            height: 400px;
+        }
+
+        .large-chart {
+            grid-column: 1 / -1;
+        }
+
+        .large-chart .chart-canvas {
+            height: 500px;
+        }
+
+        .download-section {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .download-btn {
+            background: #6BBF59;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 0 0.5rem;
+        }
+
+        .download-btn:hover {
+            background: #5AAF4A;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: #6BBF59;
+            font-size: 1.1rem;
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #c62828;
+            display: none;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #2e7d32;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kpis-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    
+    <div class="header">
+        <h1><i class="fas fa-leaf"></i> Restaurante Menta</h1>
+        <div class="subtitle">Dashboard Interactivo de Ventas</div>
+    </div>
+
+    <div class="container">
+        <!-- File Upload Section -->
+        <div class="controls-section">
+            <div class="file-upload">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Cargar Archivo de Ventas</h3>
+                <p>Selecciona un archivo Excel (.xlsx) con los datos de ventas</p>
+                <label for="fileInput" class="file-label">
+                    <i class="fas fa-file-excel"></i> Seleccionar Archivo
+                </label>
+                <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls">
+                <button class="file-label" onclick="loadSampleData()" style="background: #A4D792; margin-left: 1rem;">
+                    <i class="fas fa-play"></i> Usar Datos de Prueba
+                </button>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner"></i> Procesando datos...
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-grid" id="filtersSection" style="display: none;">
+                <div class="filter-group">
+                    <label for="categoryFilter">Categorías</label>
+                    <select id="categoryFilter" class="filter-control multi-select" multiple>
+                        <option value="🍔 Burgers">🍔 Burgers</option>
+                        <option value="🥗 Ensaladas & Bowls">🥗 Ensaladas & Bowls</option>
+                        <option value="🍽️ Almuerzos Diarios">🍽️ Almuerzos Diarios</option>
+                        <option value="⭐ Especiales">⭐ Especiales</option>
+                        <option value="🥤 Bebidas Frías">🥤 Bebidas Frías</option>
+                        <option value="☕ Otras Bebidas">☕ Otras Bebidas</option>
+                        <option value="🍨 Postres & Helados">🍨 Postres & Helados</option>
+                        <option value="🎯 Combos & Promociones">🎯 Combos & Promociones</option>
+                        <option value="📋 Planes & Mensualidades">📋 Planes & Mensualidades</option>
+                        <option value="🔧 Otros">🔧 Otros</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="productFilter">Productos</label>
+                    <select id="productFilter" class="filter-control multi-select" multiple>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="yearFilter">Año</label>
+                    <select id="yearFilter" class="filter-control">
+                        <option value="">Todos los años</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="monthFilter">Mes</label>
+                    <select id="monthFilter" class="filter-control">
+                        <option value="">Todos los meses</option>
+                        <option value="1">Enero</option>
+                        <option value="2">Febrero</option>
+                        <option value="3">Marzo</option>
+                        <option value="4">Abril</option>
+                        <option value="5">Mayo</option>
+                        <option value="6">Junio</option>
+                        <option value="7">Julio</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="dayFilter">Día de la Semana</label>
+                    <select id="dayFilter" class="filter-control">
+                        <option value="">Todos los días</option>
+                        <option value="Lunes">Lunes</option>
+                        <option value="Martes">Martes</option>
+                        <option value="Miércoles">Miércoles</option>
+                        <option value="Jueves">Jueves</option>
+                        <option value="Viernes">Viernes</option>
+                        <option value="Sábado">Sábado</option>
+                        <option value="Domingo">Domingo</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="branchFilter">Sucursal</label>
+                    <select id="branchFilter" class="filter-control">
+                        <option value="">Todas las sucursales</option>
+                        <option value="16J">16J</option>
+                        <option value="FA">FA</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPIs Section -->
+        <div class="kpis-grid" id="kpisSection" style="display: none;">
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-dollar-sign"></i></div>
+                <div class="kpi-value" id="totalSales">Bs 0</div>
+                <div class="kpi-label">Total de Ventas</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-shopping-cart"></i></div>
+                <div class="kpi-value" id="totalQuantity">0</div>
+                <div class="kpi-label">Cantidad Total Vendida</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-calendar-day"></i></div>
+                <div class="kpi-value" id="salesDays">0</div>
+                <div class="kpi-label">Días con Ventas</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="kpi-value" id="avgDailySales">Bs 0</div>
+                <div class="kpi-label">Promedio Ventas Diarias</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-receipt"></i></div>
+                <div class="kpi-value" id="avgQuantityPerTransaction">0</div>
+                <div class="kpi-label">Cantidad Promedio por Transacción</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-ticket-alt"></i></div>
+                <div class="kpi-value" id="avgTicketPerClient">Bs 0</div>
+                <div class="kpi-label">Ticket Promedio por Cliente</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-users"></i></div>
+                <div class="kpi-value" id="uniqueClients">0</div>
+                <div class="kpi-label">Clientes Únicos</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-store"></i></div>
+                <div class="kpi-value" id="salesByBranch">-</div>
+                <div class="kpi-label">Ventas por Sucursal</div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-grid" id="chartsSection" style="display: none;">
+            <div class="chart-container">
+                <div class="chart-title">Distribución de Ventas por Categoría</div>
+                <div class="chart-canvas">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Top 10 Productos por Ventas</div>
+                <div class="chart-canvas">
+                    <canvas id="topProductsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container large-chart">
+                <div class="chart-title">Evolución de Ventas Mensuales</div>
+                <div class="chart-canvas">
+                    <canvas id="monthlyTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Ventas por Día de la Semana</div>
+                <div class="chart-canvas">
+                    <canvas id="weekdayChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Relación Cantidad vs Valor por Categoría</div>
+                <div class="chart-canvas">
+                    <canvas id="quantityValueChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container large-chart">
+                <div class="chart-title">Heatmap de Ventas por Mes y Día</div>
+                <div class="chart-canvas">
+                    <canvas id="heatmapChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Top 10 Productos Menos Vendidos</div>
+                <div class="chart-canvas">
+                    <canvas id="leastProductsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">Comparativa de Ventas por Sucursal</div>
+                <div class="chart-canvas">
+                    <canvas id="branchComparisonChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container large-chart">
+                <div class="chart-title">Tendencia Acumulada de Ventas</div>
+                <div class="chart-canvas">
+                    <canvas id="cumulativeTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Section -->
+        <div class="download-section" id="downloadSection" style="display: none;">
+            <h3 style="margin-bottom: 1rem; color: #333;">Descargar Reportes</h3>
+            <button class="download-btn" onclick="downloadReport('pdf')">
+                <i class="fas fa-file-pdf"></i> Descargar PDF
+            </button>
+            <button class="download-btn" onclick="downloadReport('excel')">
+                <i class="fas fa-file-excel"></i> Descargar Excel
+            </button>
+            <button class="download-btn" onclick="downloadReport('csv')">
+                <i class="fas fa-file-csv"></i> Descargar CSV
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let salesData = [];
+        let filteredData = [];
+        let charts = {};
+
+        // Product categories mapping
+        const productCategories = {
+            "🍔 Burgers": ["BURGUER CORSO", "CAÑAHUA BURGER", "CHICKPEA BURGER", "LENTEJA BURGER", "MORENA BURGER", "QUINOA BURGER", "TAURUS BURGUER", "MINI BURGER"],
+            "🥗 Ensaladas & Bowls": ["BUDDHA BOWL", "BUDDHA BOWL PEQUEÑO", "BUFFET DE ENSALADAS", "FALAFEL BOWL", "FALAFEL BOWL PEQUEÑO", "JALISCO BOWL", "JALISCO BOWL PEQUEÑO", "MEDITERRANEA BOWL", "MEDITERRANEA BOWL PEQUEÑO"],
+            "🍽️ Almuerzos Diarios": ["ALMUERZO COMPLETO", "ALMUERZO + BUFFET DE ENSALADAS", "SEGUNDO", "SEGUNDO + BUFFET DE ENSALADAS", "SOPA", "ENTRADA"],
+            "⭐ Especiales": ["SAB. ALMUERZO ESPECIAL COMPLETO", "SAB. ESPECIAL SOPA", "SEGUNDO SABADO ESPECIAL", "SILPANCHO VEGGIE", "PIQUE MACHO", "FRICASE AÑO NUEVO", "PICANA NAVIDEÑA", "VEGANCUCHO"],
+            "🥤 Bebidas Frías": ["AGUA CON GAS", "AGUA CON LIMON", "AGUA SIN GAS", "CITRUS FRESA", "FULL CITRUS", "FULL GREEN 780", "JUGO DE TEMPORADA", "COCO", "SKINNY"],
+            "☕ Otras Bebidas": ["CERVEZA", "CERVEZA CORONA PERSONAL", "CERVEZA S/A PROST LATA", "CHUFLAY O MOJITO VASO", "INFUSION DE HIERBAS", "TE", "MENTA", "VINO BLANCO TERRUÑO BOTELLA"],
+            "🍨 Postres & Helados": ["BROWNIES", "HELADO ARTESANAL", "HELADO ARTESANAL CHOCOLATE", "PASTEL DE ZANAHORIA", "TIRAMISU", "POSTRE ESPECIAL"],
+            "🎯 Combos & Promociones": ["COMBO 2x1 TRANCAPECHO HORA VEGGIE FELIZ", "COMBO BURGER 2X1 (SIN PAPAS)", "COMBO HAMBURGUESA 3X2", "COMBO TRANCAPECHO", "PROMO 21 SEPTIEMBRE", "VEGGIE WING 2X30"],
+            "📋 Planes & Mensualidades": ["ALMUERZO MENSUAL", "ALMUERZO SEMANAL", "FIT MENSUAL", "SEGUNDO MENSUAL", "SEGUNDO SEMANAL", "PLAN MENSUAL 400", "PROMO ALMUERZO SEMANAL"],
+            "🔧 Otros": ["DESECHABLES 1bs", "DESECHABLES 3bs", "DESECHABLES 5bs", "CONSUMO CORTESIA", "PAPAS FRITAS", "PAPITAS C/SALSA BLANCA", "PORCION EXTRA-FALAFEL", "PORCION HUEVO", "PORCION CARNE HAMBURGUESA"]
+        };
+
+        // File upload handler
+        document.getElementById('fileInput').addEventListener('change', handleFile);
+
+        // Filter change handlers
+        document.getElementById('categoryFilter').addEventListener('change', updateProductFilter);
+        document.getElementById('categoryFilter').addEventListener('change', updateDashboard);
+        document.getElementById('productFilter').addEventListener('change', updateDashboard);
+        document.getElementById('yearFilter').addEventListener('change', updateDashboard);
+        document.getElementById('monthFilter').addEventListener('change', updateDashboard);
+        document.getElementById('dayFilter').addEventListener('change', updateDashboard);
+        document.getElementById('branchFilter').addEventListener('change', updateDashboard);
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showLoading(true);
+            hideMessages();
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (validateData(jsonData)) {
+                        salesData = processData(jsonData);
+                        filteredData = [...salesData];
+                        initializeDashboard();
+                        showSuccess("Archivo cargado exitosamente. Se procesaron " + salesData.length + " registros.");
+                    }
+                } catch (error) {
+                    showError("Error al procesar el archivo: " + error.message);
+                } finally {
+                    showLoading(false);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function validateData(data) {
+            if (!data || data.length === 0) {
+                showError("El archivo está vacío.");
+                return false;
+            }
+
+            const requiredColumns = ["COD PRD", "DESCRIPCION", "SUCURSAL", "CAT", "FECHA", "YEAR", "MONTH", "L a D", "Nº TRANS.", "CLIENTE", "CANTIDAD", "PRECIO", "VALOR", "BS"];
+            const firstRow = data[0];
+            const missingColumns = requiredColumns.filter(col => !(col in firstRow));
+
+            if (missingColumns.length > 0) {
+                showError("Faltan las siguientes columnas requeridas: " + missingColumns.join(", "));
+                return false;
+            }
+
+            return true;
+        }
+
+        function processData(data) {
+            return data.map(row => ({
+                codPrd: row["COD PRD"],
+                descripcion: row["DESCRIPCION"],
+                sucursal: row["SUCURSAL"],
+                categoria: getCategoryForProduct(row["DESCRIPCION"]),
+                fecha: new Date(row["FECHA"]),
+                year: parseInt(row["YEAR"]),
+                month: parseInt(row["MONTH"]),
+                diaSemana: row["L a D"],
+                numeroTransaccion: row["Nº TRANS."],
+                cliente: row["CLIENTE"],
+                cantidad: parseFloat(row["CANTIDAD"]) || 0,
+                precio: parseFloat(row["PRECIO"]) || 0,
+                valor: parseFloat(row["VALOR"]) || 0,
+                bs: parseFloat(row["BS"]) || 0
+            }));
+        }
+
+        function getCategoryForProduct(productName) {
+            for (const [category, products] of Object.entries(productCategories)) {
+                if (products.some(product => productName.includes(product) || product.includes(productName))) {
+                    return category;
+                }
+            }
+            return "🔧 Otros";
+        }
+
+        function initializeDashboard() {
+            document.getElementById('filtersSection').style.display = 'grid';
+            document.getElementById('kpisSection').style.display = 'grid';
+            document.getElementById('chartsSection').style.display = 'grid';
+            document.getElementById('downloadSection').style.display = 'block';
+
+            updateProductFilter();
+            updateDashboard();
+        }
+
+        function updateProductFilter() {
+            const categorySelect = document.getElementById('categoryFilter');
+            const productSelect = document.getElementById('productFilter');
+            const selectedCategories = Array.from(categorySelect.selectedOptions).map(option => option.value);
+
+            productSelect.innerHTML = '';
+
+            if (selectedCategories.length === 0) {
+                // Show all products
+                Object.values(productCategories).flat().forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product;
+                    option.textContent = product;
+                    productSelect.appendChild(option);
+                });
+            } else {
+                // Show only products from selected categories
+                selectedCategories.forEach(category => {
+                    if (productCategories[category]) {
+                        productCategories[category].forEach(product => {
+                            const option = document.createElement('option');
+                            option.value = product;
+                            option.textContent = product;
+                            productSelect.appendChild(option);
+                        });
+                    }
+                });
+            }
+        }
+
+        function updateDashboard() {
+            if (salesData.length === 0) return;
+
+            applyFilters();
+            updateKPIs();
+            updateCharts();
+        }
+
+        function applyFilters() {
+            filteredData = salesData.filter(row => {
+                const categoryFilter = Array.from(document.getElementById('categoryFilter').selectedOptions).map(option => option.value);
+                const productFilter = Array.from(document.getElementById('productFilter').selectedOptions).map(option => option.value);
+                const yearFilter = document.getElementById('yearFilter').value;
+                const monthFilter = document.getElementById('monthFilter').value;
+                const dayFilter = document.getElementById('dayFilter').value;
+                const branchFilter = document.getElementById('branchFilter').value;
+
+                if (categoryFilter.length > 0 && !categoryFilter.includes(row.categoria)) return false;
+                if (productFilter.length > 0 && !productFilter.some(product => row.descripcion.includes(product))) return false;
+                if (yearFilter && row.year.toString() !== yearFilter) return false;
+                if (monthFilter && row.month.toString() !== monthFilter) return false;
+                if (dayFilter && row.diaSemana !== dayFilter) return false;
+                if (branchFilter && row.sucursal !== branchFilter) return false;
+
+                return true;
+            });
+        }
+
+        function updateKPIs() {
+            const totalSales = filteredData.reduce((sum, row) => sum + row.valor, 0);
+            const totalQuantity = filteredData.reduce((sum, row) => sum + row.cantidad, 0);
+            const uniqueDates = new Set(filteredData.map(row => row.fecha.toDateString())).size;
+            const avgDailySales = uniqueDates > 0 ? totalSales / uniqueDates : 0;
+            const uniqueTransactions = new Set(filteredData.map(row => row.numeroTransaccion)).size;
+            const avgQuantityPerTransaction = uniqueTransactions > 0 ? totalQuantity / uniqueTransactions : 0;
+            const uniqueClients = new Set(filteredData.map(row => row.cliente)).size;
+            const avgTicketPerClient = uniqueClients > 0 ? totalSales / uniqueClients : 0;
+
+            document.getElementById('totalSales').textContent = formatCurrency(totalSales);
+            document.getElementById('totalQuantity').textContent = formatNumber(totalQuantity);
+            document.getElementById('salesDays').textContent = uniqueDates;
+            document.getElementById('avgDailySales').textContent = formatCurrency(avgDailySales);
+            document.getElementById('avgQuantityPerTransaction').textContent = formatNumber(avgQuantityPerTransaction, 1);
+            document.getElementById('avgTicketPerClient').textContent = formatCurrency(avgTicketPerClient);
+            document.getElementById('uniqueClients').textContent = uniqueClients;
+
+            // Sales by branch
+            const salesByBranch = {};
+            filteredData.forEach(row => {
+                if (!salesByBranch[row.sucursal]) salesByBranch[row.sucursal] = 0;
+                salesByBranch[row.sucursal] += row.valor;
+            });
+            const branchText = Object.entries(salesByBranch)
+                .map(([branch, sales]) => `${branch}: ${formatCurrency(sales)}`)
+                .join(' | ');
+            document.getElementById('salesByBranch').textContent = branchText || '-';
+        }
+
+        function updateCharts() {
+            updateCategoryChart();
+            updateTopProductsChart();
+            updateMonthlyTrendChart();
+            updateWeekdayChart();
+            updateQuantityValueChart();
+            updateHeatmapChart();
+            updateLeastProductsChart();
+            updateBranchComparisonChart();
+            updateCumulativeTrendChart();
+        }
+
+        function updateCategoryChart() {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            
+            if (charts.categoryChart) {
+                charts.categoryChart.destroy();
+            }
+
+            const categoryData = {};
+            filteredData.forEach(row => {
+                if (!categoryData[row.categoria]) categoryData[row.categoria] = 0;
+                categoryData[row.categoria] += row.valor;
+            });
+
+            const sortedData = Object.entries(categoryData).sort((a, b) => b[1] - a[1]);
+
+            charts.categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: sortedData.map(([category]) => category),
+                    datasets: [{
+                        data: sortedData.map(([, value]) => value),
+                        backgroundColor: [
+                            '#6BBF59', '#A4D792', '#5AAF4A', '#8DD87A',
+                            '#4A9B3D', '#75C267', '#3E8B32', '#9FE28F',
+                            '#2F7025', '#B8EAA8'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTopProductsChart() {
+            const ctx = document.getElementById('topProductsChart').getContext('2d');
+            
+            if (charts.topProductsChart) {
+                charts.topProductsChart.destroy();
+            }
+
+            const productData = {};
+            filteredData.forEach(row => {
+                if (!productData[row.descripcion]) productData[row.descripcion] = 0;
+                productData[row.descripcion] += row.valor;
+            });
+
+            const sortedData = Object.entries(productData)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            charts.topProductsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sortedData.map(([product]) => product.length > 20 ? product.substring(0, 20) + '...' : product),
+                    datasets: [{
+                        label: 'Ventas (Bs)',
+                        data: sortedData.map(([, value]) => value),
+                        backgroundColor: '#6BBF59',
+                        borderColor: '#5AAF4A',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateMonthlyTrendChart() {
+            const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
+            
+            if (charts.monthlyTrendChart) {
+                charts.monthlyTrendChart.destroy();
+            }
+
+            const monthlyData = {};
+            filteredData.forEach(row => {
+                const monthKey = `${row.year}-${row.month.toString().padStart(2, '0')}`;
+                if (!monthlyData[monthKey]) monthlyData[monthKey] = 0;
+                monthlyData[monthKey] += row.valor;
+            });
+
+            const sortedMonths = Object.keys(monthlyData).sort();
+            const monthNames = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+            charts.monthlyTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedMonths.map(month => {
+                        const [year, monthNum] = month.split('-');
+                        return `${monthNames[parseInt(monthNum)]} ${year}`;
+                    }),
+                    datasets: [{
+                        label: 'Ventas Mensuales (Bs)',
+                        data: sortedMonths.map(month => monthlyData[month]),
+                        borderColor: '#6BBF59',
+                        backgroundColor: 'rgba(107, 191, 89, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#6BBF59',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateWeekdayChart() {
+            const ctx = document.getElementById('weekdayChart').getContext('2d');
+            
+            if (charts.weekdayChart) {
+                charts.weekdayChart.destroy();
+            }
+
+            const weekdayData = {
+                'Lunes': 0, 'Martes': 0, 'Miércoles': 0, 'Jueves': 0,
+                'Viernes': 0, 'Sábado': 0, 'Domingo': 0
+            };
+
+            filteredData.forEach(row => {
+                if (weekdayData.hasOwnProperty(row.diaSemana)) {
+                    weekdayData[row.diaSemana] += row.valor;
+                }
+            });
+
+            charts.weekdayChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: Object.keys(weekdayData),
+                    datasets: [{
+                        label: 'Ventas por Día',
+                        data: Object.values(weekdayData),
+                        borderColor: '#6BBF59',
+                        backgroundColor: 'rgba(107, 191, 89, 0.2)',
+                        pointBackgroundColor: '#6BBF59',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value, 0);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateQuantityValueChart() {
+            const ctx = document.getElementById('quantityValueChart').getContext('2d');
+            
+            if (charts.quantityValueChart) {
+                charts.quantityValueChart.destroy();
+            }
+
+            const categoryStats = {};
+            filteredData.forEach(row => {
+                if (!categoryStats[row.categoria]) {
+                    categoryStats[row.categoria] = { cantidad: 0, valor: 0 };
+                }
+                categoryStats[row.categoria].cantidad += row.cantidad;
+                categoryStats[row.categoria].valor += row.valor;
+            });
+
+            const scatterData = Object.entries(categoryStats).map(([category, stats]) => ({
+                x: stats.cantidad,
+                y: stats.valor,
+                category: category
+            }));
+
+            charts.quantityValueChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Cantidad vs Valor',
+                        data: scatterData,
+                        backgroundColor: '#6BBF59',
+                        borderColor: '#5AAF4A',
+                        pointRadius: 8,
+                        pointHoverRadius: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const point = context.raw;
+                                    return [
+                                        point.category,
+                                        `Cantidad: ${formatNumber(point.x)}`,
+                                        `Valor: ${formatCurrency(point.y)}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Cantidad Total'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Valor Total (Bs)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateHeatmapChart() {
+            const ctx = document.getElementById('heatmapChart').getContext('2d');
+            
+            if (charts.heatmapChart) {
+                charts.heatmapChart.destroy();
+            }
+
+            const heatmapData = {};
+            const weekdays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+            // Initialize heatmap data
+            months.forEach((month, monthIndex) => {
+                weekdays.forEach(weekday => {
+                    const key = `${monthIndex + 1}-${weekday}`;
+                    heatmapData[key] = 0;
+                });
+            });
+
+            // Populate heatmap data
+            filteredData.forEach(row => {
+                const key = `${row.month}-${row.diaSemana}`;
+                if (heatmapData.hasOwnProperty(key)) {
+                    heatmapData[key] += row.valor;
+                }
+            });
+
+            // Convert to chart format
+            const chartData = [];
+            months.forEach((month, monthIndex) => {
+                weekdays.forEach((weekday, weekdayIndex) => {
+                    const key = `${monthIndex + 1}-${weekday}`;
+                    chartData.push({
+                        x: weekdayIndex,
+                        y: monthIndex,
+                        v: heatmapData[key]
+                    });
+                });
+            });
+
+            const maxValue = Math.max(...chartData.map(d => d.v));
+
+            charts.heatmapChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Ventas',
+                        data: chartData,
+                        backgroundColor: function(context) {
+                            const value = context.parsed.v;
+                            const intensity = value / maxValue;
+                            return `rgba(107, 191, 89, ${0.2 + intensity * 0.8})`;
+                        },
+                        pointRadius: function(context) {
+                            const value = context.parsed.v;
+                            return 5 + (value / maxValue) * 15;
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const point = context.raw;
+                                    return [
+                                        `${months[point.y]} - ${weekdays[point.x]}`,
+                                        `Ventas: ${formatCurrency(point.v)}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            min: -0.5,
+                            max: 6.5,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    return weekdays[value] || '';
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Día de la Semana'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            min: -0.5,
+                            max: 11.5,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    return months[value] || '';
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Mes'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateLeastProductsChart() {
+            const ctx = document.getElementById('leastProductsChart').getContext('2d');
+            
+            if (charts.leastProductsChart) {
+                charts.leastProductsChart.destroy();
+            }
+
+            const productData = {};
+            filteredData.forEach(row => {
+                if (!productData[row.descripcion]) productData[row.descripcion] = 0;
+                productData[row.descripcion] += row.valor;
+            });
+
+            const sortedData = Object.entries(productData)
+                .sort((a, b) => a[1] - b[1])
+                .slice(0, 10);
+
+            charts.leastProductsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sortedData.map(([product]) => product.length > 20 ? product.substring(0, 20) + '...' : product),
+                    datasets: [{
+                        label: 'Ventas (Bs)',
+                        data: sortedData.map(([, value]) => value),
+                        backgroundColor: '#A4D792',
+                        borderColor: '#6BBF59',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateBranchComparisonChart() {
+            const ctx = document.getElementById('branchComparisonChart').getContext('2d');
+            
+            if (charts.branchComparisonChart) {
+                charts.branchComparisonChart.destroy();
+            }
+
+            const branchData = {};
+            filteredData.forEach(row => {
+                if (!branchData[row.sucursal]) {
+                    branchData[row.sucursal] = { ventas: 0, cantidad: 0, transacciones: new Set() };
+                }
+                branchData[row.sucursal].ventas += row.valor;
+                branchData[row.sucursal].cantidad += row.cantidad;
+                branchData[row.sucursal].transacciones.add(row.numeroTransaccion);
+            });
+
+            const branches = Object.keys(branchData);
+            const salesData = branches.map(branch => branchData[branch].ventas);
+            const quantityData = branches.map(branch => branchData[branch].cantidad);
+
+            charts.branchComparisonChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: branches,
+                    datasets: [
+                        {
+                            label: 'Ventas (Bs)',
+                            data: salesData,
+                            backgroundColor: '#6BBF59',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Cantidad',
+                            data: quantityData,
+                            backgroundColor: '#A4D792',
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Ventas (Bs)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Cantidad'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCumulativeTrendChart() {
+            const ctx = document.getElementById('cumulativeTrendChart').getContext('2d');
+            
+            if (charts.cumulativeTrendChart) {
+                charts.cumulativeTrendChart.destroy();
+            }
+
+            const dailyData = {};
+            filteredData.forEach(row => {
+                const dateKey = row.fecha.toISOString().split('T')[0];
+                if (!dailyData[dateKey]) dailyData[dateKey] = 0;
+                dailyData[dateKey] += row.valor;
+            });
+
+            const sortedDates = Object.keys(dailyData).sort();
+            const cumulativeData = [];
+            let cumulative = 0;
+
+            sortedDates.forEach(date => {
+                cumulative += dailyData[date];
+                cumulativeData.push(cumulative);
+            });
+
+            charts.cumulativeTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates.map(date => new Date(date).toLocaleDateString('es-ES')),
+                    datasets: [{
+                        label: 'Ventas Acumuladas (Bs)',
+                        data: cumulativeData,
+                        borderColor: '#6BBF59',
+                        backgroundColor: 'rgba(107, 191, 89, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#6BBF59',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxTicksLimit: 10
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function formatCurrency(value, decimals = 0) {
+            return new Intl.NumberFormat('es-BO', {
+                style: 'currency',
+                currency: 'BOB',
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(value);
+        }
+
+        function formatNumber(value, decimals = 0) {
+            return new Intl.NumberFormat('es-BO', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(value);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function downloadReport(format) {
+            if (filteredData.length === 0) {
+                showError('No hay datos para descargar.');
+                return;
+            }
+
+            if (format === 'csv') {
+                downloadCSV();
+            } else if (format === 'excel') {
+                downloadExcel();
+            } else if (format === 'pdf') {
+                showError('La descarga en PDF no está implementada en esta versión.');
+            }
+        }
+
+        function downloadCSV() {
+            const headers = ['Código', 'Descripción', 'Sucursal', 'Categoría', 'Fecha', 'Año', 'Mes', 'Día Semana', 'Cliente', 'Cantidad', 'Precio', 'Valor'];
+            const csvContent = [
+                headers.join(','),
+                ...filteredData.map(row => [
+                    row.codPrd,
+                    `"${row.descripcion}"`,
+                    row.sucursal,
+                    `"${row.categoria}"`,
+                    row.fecha.toISOString().split('T')[0],
+                    row.year,
+                    row.month,
+                    row.diaSemana,
+                    row.cliente,
+                    row.cantidad,
+                    row.precio,
+                    row.valor
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `reporte_ventas_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function downloadExcel() {
+            const ws = XLSX.utils.json_to_sheet(filteredData.map(row => ({
+                'Código': row.codPrd,
+                'Descripción': row.descripcion,
+                'Sucursal': row.sucursal,
+                'Categoría': row.categoria,
+                'Fecha': row.fecha.toISOString().split('T')[0],
+                'Año': row.year,
+                'Mes': row.month,
+                'Día Semana': row.diaSemana,
+                'Cliente': row.cliente,
+                'Cantidad': row.cantidad,
+                'Precio': row.precio,
+                'Valor': row.valor
+            })));
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Reporte de Ventas');
+            XLSX.writeFile(wb, `reporte_ventas_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function loadSampleData() {
+            showLoading(true);
+            hideMessages();
+
+            try {
+                const sampleData = generateSampleData();
+                if (validateData(sampleData)) {
+                    salesData = processData(sampleData);
+                    filteredData = [...salesData];
+                    initializeDashboard();
+                    showSuccess("Datos de prueba cargados exitosamente. Se procesaron " + salesData.length + " registros.");
+                }
+            } catch (error) {
+                showError("Error al cargar datos de prueba: " + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+    </script>
 </body>
 </html>
