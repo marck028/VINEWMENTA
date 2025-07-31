@@ -11,8 +11,6 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
-  basePath: process.env.NODE_ENV === 'production' ? '/MENTA-VISUALIZADOR-VF' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/MENTA-VISUALIZADOR-VF/' : '',
 }
 
 export default nextConfig
