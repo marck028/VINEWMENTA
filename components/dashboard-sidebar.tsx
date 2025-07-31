@@ -13,7 +13,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
 } from "@/components/ui/sidebar"
-import { X } from "lucide-react"
+import { X, CheckSquare, Square } from "lucide-react"
 import { useMemo } from "react"
 import { useDataContext } from "./data-context"
 
@@ -43,9 +43,6 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ filters, setFilters }: DashboardSidebarProps) {
   const { processedData } = useDataContext()
 
-  console.log("🔧 SIDEBAR - processedData recibido:", processedData)
-  console.log("🏷️ SIDEBAR - Categorías disponibles:", processedData?.availableCategories)
-
   const clearAllFilters = () => {
     setFilters({
       categorias: [],
@@ -70,7 +67,6 @@ export function DashboardSidebar({ filters, setFilters }: DashboardSidebarProps)
 
   // Obtener categorías disponibles de los datos procesados
   const availableCategories = processedData?.availableCategories || []
-  console.log("🏷️ SIDEBAR - availableCategories final:", availableCategories)
 
   // Obtener productos disponibles basados en las categorías seleccionadas
   const availableProducts = useMemo(() => {
@@ -87,6 +83,93 @@ export function DashboardSidebar({ filters, setFilters }: DashboardSidebarProps)
 
     return [...new Set(products)].sort() // Eliminar duplicados y ordenar
   }, [processedData, filters.categorias])
+
+  // Funciones para seleccionar/limpiar todo
+  const selectAllCategories = () => {
+    setFilters({
+      ...filters,
+      categorias: [...availableCategories],
+      productos: [], // Limpiar productos cuando cambian categorías
+    })
+  }
+
+  const clearCategories = () => {
+    setFilters({
+      ...filters,
+      categorias: [],
+      productos: [], // Limpiar productos cuando cambian categorías
+    })
+  }
+
+  const selectAllProducts = () => {
+    setFilters({
+      ...filters,
+      productos: [...availableProducts],
+    })
+  }
+
+  const clearProducts = () => {
+    setFilters({
+      ...filters,
+      productos: [],
+    })
+  }
+
+  const selectAllSucursales = () => {
+    setFilters({
+      ...filters,
+      sucursal: [...SUCURSALES],
+    })
+  }
+
+  const clearSucursales = () => {
+    setFilters({
+      ...filters,
+      sucursal: [],
+    })
+  }
+
+  const selectAllAños = () => {
+    setFilters({
+      ...filters,
+      años: [...AÑOS],
+    })
+  }
+
+  const clearAños = () => {
+    setFilters({
+      ...filters,
+      años: [],
+    })
+  }
+
+  const selectAllMeses = () => {
+    setFilters({
+      ...filters,
+      meses: [...MESES],
+    })
+  }
+
+  const clearMeses = () => {
+    setFilters({
+      ...filters,
+      meses: [],
+    })
+  }
+
+  const selectAllDias = () => {
+    setFilters({
+      ...filters,
+      diasSemana: [...DIAS_SEMANA],
+    })
+  }
+
+  const clearDias = () => {
+    setFilters({
+      ...filters,
+      diasSemana: [],
+    })
+  }
 
   return (
     <Sidebar className="border-r border-green-200">
@@ -109,55 +192,64 @@ export function DashboardSidebar({ filters, setFilters }: DashboardSidebarProps)
 
       <SidebarContent>
         <ScrollArea className="h-full">
-          {/* Debug Info */}
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-red-700">🔍 Debug Info</SidebarGroupLabel>
-            <SidebarGroupContent className="space-y-1">
-              <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
-                <p>processedData: {processedData ? "✅ Existe" : "❌ Null"}</p>
-                <p>availableCategories: {availableCategories.length} encontradas</p>
-                <p>Categorías: {JSON.stringify(availableCategories)}</p>
-              </div>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
           {/* Categorías */}
           <SidebarGroup>
             <SidebarGroupLabel className="text-green-700">
-              Categorías ({availableCategories.length} disponibles)
+              🏷️ Categorías ({availableCategories.length} disponibles)
             </SidebarGroupLabel>
             <SidebarGroupContent className="space-y-2">
               {availableCategories.length > 0 ? (
-                availableCategories.map((categoria) => (
-                  <div key={categoria} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={categoria}
-                      checked={filters.categorias.includes(categoria)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setFilters({
-                            ...filters,
-                            categorias: [...filters.categorias, categoria],
-                            productos: [], // Limpiar productos cuando cambian categorías
-                          })
-                        } else {
-                          setFilters({
-                            ...filters,
-                            categorias: filters.categorias.filter((c: string) => c !== categoria),
-                            productos: [], // Limpiar productos cuando cambian categorías
-                          })
-                        }
-                      }}
-                    />
-                    <Label htmlFor={categoria} className="text-sm cursor-pointer">
-                      {categoria}
-                    </Label>
+                <>
+                  {availableCategories.map((categoria) => (
+                    <div key={categoria} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={categoria}
+                        checked={filters.categorias.includes(categoria)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setFilters({
+                              ...filters,
+                              categorias: [...filters.categorias, categoria],
+                              productos: [], // Limpiar productos cuando cambian categorías
+                            })
+                          } else {
+                            setFilters({
+                              ...filters,
+                              categorias: filters.categorias.filter((c: string) => c !== categoria),
+                              productos: [], // Limpiar productos cuando cambian categorías
+                            })
+                          }
+                        }}
+                      />
+                      <Label htmlFor={categoria} className="text-sm cursor-pointer">
+                        {categoria}
+                      </Label>
+                    </div>
+                  ))}
+                  <div className="flex gap-2 pt-2 border-t border-green-100">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={selectAllCategories}
+                      className="flex-1 text-xs border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                    >
+                      <CheckSquare className="w-3 h-3 mr-1" />
+                      Todo
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearCategories}
+                      className="flex-1 text-xs border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                    >
+                      <Square className="w-3 h-3 mr-1" />
+                      Limpiar
+                    </Button>
                   </div>
-                ))
+                </>
               ) : (
-                <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
-                  <p>❌ No se encontraron categorías</p>
-                  <p>Verifica la consola del navegador (F12) para más detalles</p>
+                <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                  <p>📊 Carga tu archivo Excel para ver las categorías disponibles</p>
                 </div>
               )}
             </SidebarGroupContent>
@@ -194,6 +286,26 @@ export function DashboardSidebar({ filters, setFilters }: DashboardSidebarProps)
                     </Label>
                   </div>
                 ))}
+                <div className="flex gap-2 pt-2 border-t border-green-100">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={selectAllProducts}
+                    className="flex-1 text-xs border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                  >
+                    <CheckSquare className="w-3 h-3 mr-1" />
+                    Todo
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearProducts}
+                    className="flex-1 text-xs border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                  >
+                    <Square className="w-3 h-3 mr-1" />
+                    Limpiar
+                  </Button>
+                </div>
               </SidebarGroupContent>
             </SidebarGroup>
           )}
@@ -226,6 +338,26 @@ export function DashboardSidebar({ filters, setFilters }: DashboardSidebarProps)
                   </Label>
                 </div>
               ))}
+              <div className="flex gap-2 pt-2 border-t border-green-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAllSucursales}
+                  className="flex-1 text-xs border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                >
+                  <CheckSquare className="w-3 h-3 mr-1" />
+                  Todo
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearSucursales}
+                  className="flex-1 text-xs border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                >
+                  <Square className="w-3 h-3 mr-1" />
+                  Limpiar
+                </Button>
+              </div>
             </SidebarGroupContent>
           </SidebarGroup>
 
@@ -257,6 +389,26 @@ export function DashboardSidebar({ filters, setFilters }: DashboardSidebarProps)
                   </Label>
                 </div>
               ))}
+              <div className="flex gap-2 pt-2 border-t border-green-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAllAños}
+                  className="flex-1 text-xs border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                >
+                  <CheckSquare className="w-3 h-3 mr-1" />
+                  Todo
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAños}
+                  className="flex-1 text-xs border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                >
+                  <Square className="w-3 h-3 mr-1" />
+                  Limpiar
+                </Button>
+              </div>
             </SidebarGroupContent>
           </SidebarGroup>
 
@@ -288,6 +440,26 @@ export function DashboardSidebar({ filters, setFilters }: DashboardSidebarProps)
                   </Label>
                 </div>
               ))}
+              <div className="flex gap-2 pt-2 border-t border-green-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAllMeses}
+                  className="flex-1 text-xs border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                >
+                  <CheckSquare className="w-3 h-3 mr-1" />
+                  Todo
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearMeses}
+                  className="flex-1 text-xs border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                >
+                  <Square className="w-3 h-3 mr-1" />
+                  Limpiar
+                </Button>
+              </div>
             </SidebarGroupContent>
           </SidebarGroup>
 
@@ -319,6 +491,26 @@ export function DashboardSidebar({ filters, setFilters }: DashboardSidebarProps)
                   </Label>
                 </div>
               ))}
+              <div className="flex gap-2 pt-2 border-t border-green-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAllDias}
+                  className="flex-1 text-xs border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                >
+                  <CheckSquare className="w-3 h-3 mr-1" />
+                  Todo
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearDias}
+                  className="flex-1 text-xs border-green-300 text-green-700 hover:bg-green-50 bg-transparent"
+                >
+                  <Square className="w-3 h-3 mr-1" />
+                  Limpiar
+                </Button>
+              </div>
             </SidebarGroupContent>
           </SidebarGroup>
         </ScrollArea>

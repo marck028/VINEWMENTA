@@ -26,6 +26,7 @@ const CATEGORY_COLORS: { [key: string]: string } = {
   "Otras Bebidas": "#E5F7D9",
   "Categoria desconocida": "#94A3B8",
   "Sin Categoría": "#CBD5E1",
+  Otros: "#F1F5F9",
 }
 
 // Función para obtener emoji basado en la categoría
@@ -42,6 +43,7 @@ const getCategoryEmoji = (category: string): string => {
     "Otras Bebidas": "☕",
     "Categoria desconocida": "❓",
     "Sin Categoría": "🔧",
+    Otros: "📦",
   }
   return emojiMap[category] || "📦"
 }
@@ -153,7 +155,7 @@ export function SalesCharts({ data }: SalesChartsProps) {
       }
     })
 
-    // Heatmap simplificado (usando datos mensuales y semanales)
+    // Heatmap mejorado con formato decimal
     const heatmapData = monthOrder.slice(0, 6).map((month) => {
       const monthSales = data.monthlySales?.[month] || 0
       const avgDailySales = monthSales / 30 // Aproximación
@@ -362,7 +364,7 @@ export function SalesCharts({ data }: SalesChartsProps) {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-green-800">Heatmap de Ventas</CardTitle>
-              <CardDescription>Ventas por mes y día de la semana</CardDescription>
+              <CardDescription>Ventas por mes y día de la semana (en miles)</CardDescription>
             </div>
             <Button
               variant="outline"
@@ -377,13 +379,13 @@ export function SalesCharts({ data }: SalesChartsProps) {
             <div className="space-y-2">
               <div className="grid grid-cols-8 gap-1 text-xs font-medium text-green-700">
                 <div></div>
-                <div>L</div>
-                <div>M</div>
-                <div>X</div>
-                <div>J</div>
-                <div>V</div>
-                <div>S</div>
-                <div>D</div>
+                <div>Lun</div>
+                <div>Mar</div>
+                <div>Mie</div>
+                <div>Jue</div>
+                <div>Vie</div>
+                <div>Sab</div>
+                <div>Dom</div>
               </div>
               {chartData.heatmapData.map((row, index) => (
                 <div key={index} className="grid grid-cols-8 gap-1">
@@ -395,6 +397,8 @@ export function SalesCharts({ data }: SalesChartsProps) {
                         ...chartData.heatmapData.flatMap((r) => Object.values(r).slice(1) as number[]),
                       )
                       const intensity = (value as number) / maxValue
+                      const displayValue = (value as number) / 1000 // Convertir a miles
+
                       return (
                         <div
                           key={dayIndex}
@@ -405,7 +409,7 @@ export function SalesCharts({ data }: SalesChartsProps) {
                           }}
                           title={`${row.month} ${day}: Bs. ${(value as number).toLocaleString()}`}
                         >
-                          {Math.round((value as number) / 1000)}k
+                          {((value as number) / 1000).toLocaleString(undefined, { maximumFractionDigits: 3 })}
                         </div>
                       )
                     })}

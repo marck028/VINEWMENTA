@@ -1,24 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Upload } from "lucide-react"
-import { SidebarProvider } from "@/components/ui/sidebar"
+import { useState } from "react"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { FileUpload } from "@/components/file-upload"
 import { KPICards } from "@/components/kpi-cards"
 import { SalesCharts } from "@/components/sales-charts"
-import { FileUpload } from "@/components/file-upload"
-import { DynamicCategoriesInfo } from "@/components/dynamic-categories-info"
-import { SampleDataGenerator } from "@/components/sample-data-generator"
 import { FilterStatusIndicator } from "@/components/filter-status-indicator"
 import { DataSummary } from "@/components/data-summary"
+import { SampleDataGenerator } from "@/components/sample-data-generator"
 import { DataProvider, useDataContext } from "@/components/data-context"
+import { Button } from "@/components/ui/button"
+import { Upload } from "lucide-react"
 
 function DashboardContent() {
   const { processedData, applyFilters } = useDataContext()
-  const [hasData, setHasData] = useState(false)
-  const [filteredData, setFilteredData] = useState(null)
+  const [fileUploaded, setFileUploaded] = useState(false)
+  const [showNewFileUpload, setShowNewFileUpload] = useState(false)
   const [filters, setFilters] = useState({
     categorias: [],
     productos: [],
@@ -28,80 +26,73 @@ function DashboardContent() {
     sucursal: [],
   })
 
-  console.log("🏠 APP - processedData:", processedData)
-  console.log("🏠 APP - hasData:", hasData)
-
-  const hasActiveFilters =
-    filters.categorias.length > 0 ||
-    filters.productos.length > 0 ||
-    filters.años.length > 0 ||
-    filters.meses.length > 0 ||
-    filters.diasSemana.length > 0 ||
-    filters.sucursal.length > 0
-
-  const activeFiltersCount =
-    filters.categorias.length +
-    filters.productos.length +
-    filters.años.length +
-    filters.meses.length +
-    filters.diasSemana.length +
-    filters.sucursal.length
-
-  useEffect(() => {
-    if (processedData) {
-      console.log("🔄 APP - Efecto processedData actualizado")
-      console.log("🏷️ APP - Categorías en processedData:", processedData.availableCategories)
-
-      // Verificar si hay algún filtro activo
-      const hasActiveFilters =
-        filters.categorias.length > 0 ||
-        filters.productos.length > 0 ||
-        filters.años.length > 0 ||
-        filters.meses.length > 0 ||
-        filters.diasSemana.length > 0 ||
-        filters.sucursal.length > 0
-
-      if (hasActiveFilters) {
-        const filtered = applyFilters(filters)
-        setFilteredData(filtered)
-      } else {
-        // Si no hay filtros activos, mostrar todos los datos
-        setFilteredData(null)
-      }
-    }
-  }, [filters, processedData, applyFilters])
+  // Aplicar filtros a los datos
+  const filteredData =
+    processedData && Object.values(filters).some((f) => f.length > 0) ? applyFilters(filters) : processedData
 
   const handleFileUpload = (success: boolean) => {
-    console.log("🚀 APP - handleFileUpload llamado con:", success)
     if (success) {
-      setHasData(true)
+      setFileUploaded(true)
+      setShowNewFileUpload(false)
+      // Limpiar filtros cuando se carga un nuevo archivo
+      setFilters({
+        categorias: [],
+        productos: [],
+        años: [],
+        meses: [],
+        diasSemana: [],
+        sucursal: [],
+      })
     }
   }
 
-  // Obtener categorías disponibles de los datos procesados
-  const availableCategories = processedData?.availableCategories || []
-  console.log("🏠 APP - availableCategories:", availableCategories)
+  const handleLoadNewFile = () => {
+    setShowNewFileUpload(true)
+    setFileUploaded(false)
+  }
 
-  if (!hasData) {
+  if (!fileUploaded && !showNewFileUpload) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center p-4">
-        <div className="w-full max-w-4xl space-y-6">
-          <Card className="w-full max-w-md mx-auto">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <Upload className="w-8 h-8 text-green-600" />
-              </div>
-              <CardTitle className="text-2xl text-green-800">Restaurante Menta</CardTitle>
-              <p className="text-green-600">Dashboard de Ventas</p>
-            </CardHeader>
-            <CardContent>
-              <FileUpload onFileUpload={handleFileUpload} />
-            </CardContent>
-          </Card>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-green-800 mb-2">🌱 Dashboard Restaurante Menta</h1>
+            <p className="text-green-600 text-lg">Visualizador de Ventas y Analytics</p>
+          </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
-            <DynamicCategoriesInfo availableCategories={availableCategories} />
-            <SampleDataGenerator />
+          <div className="max-w-2xl mx-auto">
+            <FileUpload onFileUpload={handleFileUpload} />
+
+            <div className="mt-8">
+              <SampleDataGenerator />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (showNewFileUpload) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-green-800 mb-2">🌱 Cargar Nuevo Archivo</h1>
+            <p className="text-green-600 text-lg">Selecciona un nuevo archivo de datos</p>
+          </div>
+
+          <div className="max-w-2xl mx-auto">
+            <FileUpload onFileUpload={handleFileUpload} />
+
+            <div className="mt-4 text-center">
+              <Button
+                variant="outline"
+                onClick={() => setShowNewFileUpload(false)}
+                className="border-green-300 text-green-700 hover:bg-green-50"
+              >
+                Cancelar
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -110,30 +101,43 @@ function DashboardContent() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-green-50">
+      <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-green-100">
         <DashboardSidebar filters={filters} setFilters={setFilters} />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4">
-            <SidebarTrigger className="-ml-1" />
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">M</span>
+
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <header className="bg-white border-b border-green-200 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger className="text-green-700" />
+                <div>
+                  <h1 className="text-2xl font-bold text-green-800">🌱 Dashboard Restaurante Menta</h1>
+                  <p className="text-green-600 text-sm">Visualizador de Ventas y Analytics</p>
+                </div>
               </div>
-              <div>
-                <h1 className="font-semibold text-green-800">Restaurante Menta</h1>
-                <p className="text-sm text-green-600">Dashboard de Ventas</p>
-              </div>
+
+              <Button onClick={handleLoadNewFile} className="bg-green-600 hover:bg-green-700">
+                <Upload className="w-4 h-4 mr-2" />
+                Cargar Nuevo Archivo
+              </Button>
             </div>
           </header>
-          <main className="flex-1 p-6 space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <FilterStatusIndicator hasActiveFilters={hasActiveFilters} activeFiltersCount={activeFiltersCount} />
-              <DataSummary data={processedData} />
+
+          {/* Main Content */}
+          <main className="flex-1 p-6 space-y-6 overflow-auto">
+            {/* Status and Summary */}
+            <div className="grid gap-6 md:grid-cols-2">
+              <FilterStatusIndicator filters={filters} />
+              <DataSummary data={filteredData} />
             </div>
-            <KPICards data={filteredData || processedData} isFiltered={hasActiveFilters} />
-            <SalesCharts data={filteredData || processedData} />
+
+            {/* KPIs */}
+            <KPICards data={filteredData} />
+
+            {/* Charts */}
+            <SalesCharts data={filteredData} />
           </main>
-        </SidebarInset>
+        </div>
       </div>
     </SidebarProvider>
   )

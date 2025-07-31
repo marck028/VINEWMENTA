@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Dependencies
 /node_modules
 /.pnp
@@ -41,7 +40,3 @@ next-env.d.ts
 
 # OS
 Thumbs.db
-=======
-node_modules/
-.env
->>>>>>> f9f44ec4a8b9291a779c90ea8603dc72c9573488
