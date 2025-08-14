@@ -155,6 +155,38 @@ export function SalesCharts({ data }: SalesChartsProps) {
       }
     })
 
+    // Datos para productos por categorías seleccionadas (nuevo gráfico)
+    const productsInCategoriesData = useMemo(() => {
+      if (!data?.availableProducts || !data?.productSales) return []
+      
+      const productsData: { product: string; sales: number; category: string; fill: string }[] = []
+      
+      // Obtener todas las categorías disponibles
+      const categories = Object.keys(data.availableProducts)
+      
+      categories.forEach((category) => {
+        const categoryProducts = data.availableProducts[category] || []
+        const categoryColor = CATEGORY_COLORS[category] || "#6BBF59"
+        
+        categoryProducts.forEach((product) => {
+          const productInfo = data.productSales[product]
+          if (productInfo && productInfo.sales > 0) {
+            productsData.push({
+              product,
+              sales: productInfo.sales,
+              category,
+              fill: categoryColor
+            })
+          }
+        })
+      })
+      
+      // Ordenar por ventas y tomar los top 15 productos
+      return productsData
+        .sort((a, b) => b.sales - a.sales)
+        .slice(0, 15)
+    }, [data])
+
     // Heatmap mejorado con formato decimal
     const heatmapData = monthOrder.slice(0, 6).map((month) => {
       const monthSales = data.monthlySales?.[month] || 0
@@ -179,6 +211,7 @@ export function SalesCharts({ data }: SalesChartsProps) {
       topProducts,
       bottomProducts,
       branchData,
+      productsInCategoriesData,
       quantityValueData,
       heatmapData,
     }
@@ -207,7 +240,7 @@ export function SalesCharts({ data }: SalesChartsProps) {
         </Button>
       </div>
 
-      {/* Primera fila - Gráficos principales */}
+      {/* Primera fila - Distribución por categoría y productos en categorías */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="border-green-200">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -264,6 +297,75 @@ export function SalesCharts({ data }: SalesChartsProps) {
         <Card className="border-green-200">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
+              <CardTitle className="text-green-800">Productos por Categorías</CardTitle>
+              <CardDescription>Top 15 productos según categorías disponibles</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadChart("productos_categorias")}
+              className="border-green-300 text-green-700 hover:bg-green-50"
+            >
+              <Download className="w-4 h-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {chartData.productsInCategoriesData.length > 0 ? (
+              <ChartContainer
+                config={{
+                  sales: {
+                    label: "Ventas",
+                    color: "#6BBF59",
+                  },
+                }}
+                className="h-[300px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={chartData.productsInCategoriesData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="sales"
+                      label={({ product, sales }) => `${product.length > 15 ? product.substring(0, 15) + '...' : product}: Bs.${sales.toLocaleString()}`}
+                    >
+                      {chartData.productsInCategoriesData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload
+                          return (
+                            <div className="bg-white p-3 border border-green-200 rounded-lg shadow-lg">
+                              <p className="font-medium text-green-800">{data.product}</p>
+                              <p className="text-sm text-green-600">Categoría: {getCategoryEmoji(data.category)} {data.category}</p>
+                              <p className="text-sm text-green-700">Ventas: Bs. {data.sales.toLocaleString()}</p>
+                            </div>
+                          )
+                        }
+                        return null
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-green-600">
+                No hay datos de productos disponibles
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Segunda fila - Tendencia acumulada */}
+      <div className="grid gap-6 md:grid-cols-1">
+        <Card className="border-green-200">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
               <CardTitle className="text-green-800">Tendencia Acumulada</CardTitle>
               <CardDescription>Ventas mensuales y acumuladas</CardDescription>
             </div>
@@ -309,7 +411,7 @@ export function SalesCharts({ data }: SalesChartsProps) {
         </Card>
       </div>
 
-      {/* Segunda fila - Relación cantidad vs valor y Heatmap */}
+      {/* Tercera fila - Relación cantidad vs valor y Heatmap */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="border-green-200">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -420,7 +522,7 @@ export function SalesCharts({ data }: SalesChartsProps) {
         </Card>
       </div>
 
-      {/* Tercera fila - Ventas por día y comparativa sucursales */}
+      {/* Cuarta fila - Ventas por día y comparativa sucursales */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="border-green-200">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -501,7 +603,7 @@ export function SalesCharts({ data }: SalesChartsProps) {
         </Card>
       </div>
 
-      {/* Cuarta fila - Top y Bottom productos */}
+      {/* Quinta fila - Top y Bottom productos */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="border-green-200">
           <CardHeader className="flex flex-row items-center justify-between">
